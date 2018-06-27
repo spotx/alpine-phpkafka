@@ -1,3 +1,11 @@
+FROM elek/librdkafka as kafkaBuilder
+LABEL authors="joel@spotx.tv"
+WORKDIR /root
+
+RUN ldconfig && git clone https://github.com/EVODelavega/phpkafka.git
+RUN cd phpkafka && phpize && ./configure --enable-kafka && make
+
+#-------------------------------------------------------------------------------
 FROM alpine:3.7 as builder
 LABEL authors="rnagtalon@spotx.tv"
 WORKDIR /root
@@ -68,6 +76,9 @@ RUN apk --no-cache add \
     echo "extension=cassandra.so" > /etc/php7/conf.d/99_cassandra.ini
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 # redis: Required for sync-conf replacement.
+
+# Copy kafka build artifacts
+COPY --from=kafkaBuilder /usr/lib/php7/modules/phpkafka.so /usr/lib/php7/modules/phpkakfa.so
 
 # Copy PECL build artifacts
 COPY --from=builder /usr/lib/php7/modules/cassandra.so /usr/lib/php7/modules/cassandra.so
