@@ -20,3 +20,6 @@ RUN apk add --no-cache \
     pecl config-set php_ini /etc/php7/php.ini && \
     pecl install xdebug-2.5.0
 
+RUN apk add --no-cache \
+	sudo \
+	yarn
