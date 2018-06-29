@@ -26,4 +26,5 @@ RUN apk add --no-cache \
 
 ADD .spocker-login-greeting.shinc /var/
 ADD .bashrc_php_dev /var/
+ADD add-container-etc-hosts-entry /usr/local/bin/
 
