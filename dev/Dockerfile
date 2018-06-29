@@ -17,6 +17,6 @@ RUN apk add --no-cache \
         php7-dev \
         php7-pear && \
     pear config-set php_ini /etc/php7/php.ini && \
-    pecl config-set php_ini /etc/php7/php.ini \
-	&& pecl install xdebug-2.5.0 \
-	&& docker-php-ext-enable xdebug
+    pecl config-set php_ini /etc/php7/php.ini && \
+    pecl install xdebug-2.5.0
+
