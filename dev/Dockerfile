@@ -23,3 +23,7 @@ RUN apk add --no-cache \
 RUN apk add --no-cache \
 	sudo \
 	yarn
+
+ADD .spocker-login-greeding.shinc /var/
+ADD .bashrc_php_dev /var/
+
