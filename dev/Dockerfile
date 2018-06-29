@@ -24,6 +24,6 @@ RUN apk add --no-cache \
 	sudo \
 	yarn
 
-ADD .spocker-login-greeding.shinc /var/
+ADD .spocker-login-greeting.shinc /var/
 ADD .bashrc_php_dev /var/
 
