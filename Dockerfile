@@ -1,12 +1,40 @@
-FROM elek/librdkafka as kafkaBuilder
+FROM alpine:latest  as kafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
-RUN ldconfig && git clone https://github.com/EVODelavega/phpkafka.git
-RUN cd phpkafka && phpize && ./configure --enable-kafka && make
+RUN apk add --no-cache \
+        autoconf \
+        cmake \
+        g++ \
+        gcc \
+        gmp-dev \
+        git \
+        libuv-dev \
+        make \
+        openssl-dev \
+        php7-dev \
+        php7-pear && \
+    pear config-set php_ini /etc/php7/php.ini && \
+    pecl config-set php_ini /etc/php7/php.ini
+
+RUN apk add --update --no-cache alpine-sdk bash python
+
+RUN git clone https://github.com/edenhill/librdkafka.git
+
+WORKDIR /root/librdkafka
+RUN /root/librdkafka/configure
+RUN make && make install
+
+RUN git clone https://github.com/arnaud-lb/php-rdkafka.git
+RUN cd php-rdkafka && \
+	phpize7 && \
+	./configure --enable-kafka --with-php-config=/usr/bin/php-config7 && \
+	make all -j 5 && \
+	make install && \
+	echo "extension=rdkafka.so" > /etc/php7/conf.d/25_rdkafka.ini
 
 #-------------------------------------------------------------------------------
-FROM alpine:3.7 as builder
+FROM alpine:latest as builder
 LABEL authors="rnagtalon@spotx.tv"
 WORKDIR /root
 
@@ -26,7 +54,7 @@ RUN apk add --no-cache \
     pecl config-set php_ini /etc/php7/php.ini
 
 # No cassandra-cpp-driver in Alpine. Building from source.
-ARG CASSANDRA_CPP_DRIVER_GIT_TAG
+ARG CASSANDRA_CPP_DRIVER_GIT_TAG="2.9.0"
 RUN git clone --depth 1 --single-branch \
         --branch ${CASSANDRA_CPP_DRIVER_GIT_TAG} \
         https://github.com/datastax/cpp-driver.git && \
@@ -55,7 +83,7 @@ RUN pecl install cassandra && \
 #    Extension cassandra enabled in php.ini
 
 #-------------------------------------------------------------------------------
-FROM alpine:3.7
+FROM alpine:latest
 RUN apk --no-cache add \
         bash \
         gmp \
@@ -64,6 +92,7 @@ RUN apk --no-cache add \
         memcached \
         openssl \
         php7 \
+        php7-fpm \
         php7-mbstring \
         php7-mysqli \
         php7-opcache \
@@ -72,13 +101,18 @@ RUN apk --no-cache add \
         php7-posix \
         php7-redis \
         php7-xml \
+        nginx supervisor curl \
         redis && \
     echo "extension=cassandra.so" > /etc/php7/conf.d/99_cassandra.ini
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 # redis: Required for sync-conf replacement.
 
 # Copy kafka build artifacts
-COPY --from=kafkaBuilder /usr/lib/php7/modules/phpkafka.so /usr/lib/php7/modules/phpkakfa.so
+COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
+COPY --from=kafkaBuilder /usr/lib/php7/modules/rdkafka.so /usr/lib/php7/modules/rdkafka.so
+COPY --from=kafkaBuilder /etc/php7/conf.d/25_rdkafka.ini /etc/php7/conf.d/
+COPY --from=kafkaBuilder /usr/local/lib/librdkafka* /usr/local/lib/
+COPY --from=kafkaBuilder /usr/local/lib/pkgconfig/rdkafka* /usr/local/lib/pkgconfig/
 
 # Copy PECL build artifacts
 COPY --from=builder /usr/lib/php7/modules/cassandra.so /usr/lib/php7/modules/cassandra.so
@@ -87,3 +121,20 @@ COPY --from=builder /usr/lib/php7/modules/cassandra.so /usr/lib/php7/modules/cas
 COPY --from=builder /usr/local/include/cassandra.h /usr/local/include/
 COPY --from=builder /usr/local/lib/libcassandra.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/lib/pkgconfig/
+
+
+# Configure nginx
+COPY config/nginx.conf /etc/nginx/nginx.conf
+
+# Configure PHP-FPM
+COPY config/fpm-pool.conf /etc/php7/php-fpm.d/zzz_custom.conf
+
+# Configure supervisord
+COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Add application
+RUN mkdir -p /var/www/html
+WORKDIR /var/www/html
+
+EXPOSE 8080
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
