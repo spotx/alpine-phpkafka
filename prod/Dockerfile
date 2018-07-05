@@ -93,6 +93,7 @@ RUN apk --no-cache add \
         openssl \
         php7 \
         php7-fpm \
+	php7-json \
         php7-mbstring \
         php7-mysqli \
         php7-opcache \
@@ -126,8 +127,8 @@ COPY --from=builder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/lib/pkgconf
 # Configure nginx
 COPY config/nginx.conf /etc/nginx/nginx.conf
 
-# Configure PHP-FPM
-COPY config/fpm-pool.conf /etc/php7/php-fpm.d/zzz_custom.conf
+# Configure PHP-FPM. Use zzz_ to ensure this conf is processed last.
+COPY config/fpm-pool.conf /etc/php7/php-fpm.d/zzz_www.conf
 
 # Configure supervisord
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
