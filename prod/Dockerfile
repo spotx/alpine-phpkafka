@@ -92,8 +92,9 @@ RUN apk --no-cache add \
         memcached \
         openssl \
         php7 \
+        php7-dom \
         php7-fpm \
-	php7-json \
+        php7-json \
         php7-mbstring \
         php7-mysqli \
         php7-opcache \

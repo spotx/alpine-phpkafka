@@ -25,6 +25,6 @@ RUN apk add --no-cache \
 	yarn
 
 ADD .spocker-login-greeting.shinc /var/
-ADD .bashrc_php_dev /var/
+ADD .bashrc_php7_dev /var/
 ADD add-container-etc-hosts-entry /usr/local/bin/
-
+ADD 50-xdebug.ini /etc/php7/conf.d/
