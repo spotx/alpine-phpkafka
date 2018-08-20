@@ -136,7 +136,13 @@ COPY config/fpm-pool.conf /etc/php7/php-fpm.d/zzz_www.conf
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Add application
-RUN mkdir -p /var/www/html
+RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/www/html && \
+    mkdir -p /var/lib/nginx && chown -R nginx:root /var/lib/nginx && chmod -R g+w /var/lib/nginx && \
+    mkdir -p /var/log/nginx && chown nginx:root /var/log/nginx && chmod g+wr /var/log/nginx && \
+    mkdir -p /var/tmp/nginx && chown nginx:root /var/tmp/nginx && chmod g+wrx /var/tmp/nginx && \
+    rm -f /etc/nginx/conf.d/*.conf && \
+    chmod g+w /run
+
 WORKDIR /var/www/html
 
 EXPOSE 8080
