@@ -1,4 +1,4 @@
-FROM alpine:latest  as kafkaBuilder
+FROM alpine:3.7  as kafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -34,7 +34,7 @@ RUN cd php-rdkafka && \
 	echo "extension=rdkafka.so" > /etc/php7/conf.d/25_rdkafka.ini
 
 #-------------------------------------------------------------------------------
-FROM alpine:latest as builder
+FROM alpine:3.7 as builder
 LABEL authors="rnagtalon@spotx.tv"
 WORKDIR /root
 
@@ -83,7 +83,7 @@ RUN pecl install cassandra && \
 #    Extension cassandra enabled in php.ini
 
 #-------------------------------------------------------------------------------
-FROM alpine:latest
+FROM alpine:3.7
 RUN apk --no-cache add \
         bash \
         gmp \
