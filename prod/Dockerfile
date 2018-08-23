@@ -84,8 +84,11 @@ RUN pecl install cassandra && \
 
 #-------------------------------------------------------------------------------
 FROM alpine:3.7
-RUN apk --no-cache add \
+RUN mkdir /opt && \
+    wget https://github.com/knyar/nginx-lua-prometheus/archive/0.1-20170610.zip -O - | unzip -d /opt - && \
+    apk --no-cache add \
         bash \
+        curl \
         gmp \
         libstdc++ \
         libuv \
@@ -104,8 +107,10 @@ RUN apk --no-cache add \
         php7-posix \
         php7-redis \
         php7-xml \
-        nginx supervisor curl \
-        redis && \
+        nginx \
+        nginx-mod-http-lua \
+        redis \
+        supervisor && \
     echo "extension=cassandra.so" > /etc/php7/conf.d/99_cassandra.ini
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 # redis: Required for sync-conf replacement.
@@ -128,6 +133,8 @@ COPY --from=builder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/lib/pkgconf
 
 # Configure nginx
 COPY config/nginx.conf /etc/nginx/nginx.conf
+COPY config/nginx-metrics.conf /etc/nginx/conf.d/nginx-metrics.conf
+COPY config/prometheus.conf /etc/nginx/conf.d/prometheus.conf
 
 # Configure PHP-FPM. Use zzz_ to ensure this conf is processed last.
 COPY config/fpm-pool.conf /etc/php7/php-fpm.d/zzz_www.conf
