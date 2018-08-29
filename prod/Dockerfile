@@ -152,5 +152,5 @@ RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/w
 
 WORKDIR /var/www/html
 
-EXPOSE 8080
+EXPOSE 8080 8081
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
