@@ -98,6 +98,7 @@ RUN mkdir /opt && \
         php7-ctype \
         php7-dom \
         php7-fpm \
+        php7-intl \
         php7-json \
         php7-mbstring \
         php7-mysqli \
