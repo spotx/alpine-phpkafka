@@ -153,6 +153,8 @@ RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/w
 COPY config/nginx-metrics.conf /etc/nginx/conf.d/nginx-metrics.conf
 COPY config/prometheus.conf /etc/nginx/conf.d/prometheus.conf
 
+COPY bin/nginx-stop.sh /usr/local/bin/
+
 WORKDIR /var/www/html
 
 EXPOSE 8080 8081
