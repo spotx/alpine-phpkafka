@@ -107,6 +107,7 @@ RUN mkdir /opt && \
         php7-posix \
         php7-redis \
         php7-xml \
+        php7-xsl \
         nginx \
         nginx-mod-http-lua \
         redis \
