@@ -96,6 +96,7 @@ RUN mkdir /opt && \
         openssl \
         php7 \
         php7-ctype \
+        php7-curl \
         php7-dom \
         php7-fpm \
         php7-intl \
