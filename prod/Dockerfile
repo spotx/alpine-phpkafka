@@ -112,8 +112,7 @@ RUN mkdir /opt && \
         php7-xsl \
         nginx \
         nginx-mod-http-lua \
-        redis \
-        supervisor && \
+        redis && \
     echo "extension=cassandra.so" > /etc/php7/conf.d/99_cassandra.ini
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 # redis: Required for sync-conf replacement.
@@ -140,9 +139,6 @@ COPY config/nginx.conf /etc/nginx/nginx.conf
 # Configure PHP-FPM. Use zzz_ to ensure this conf is processed last.
 COPY config/fpm-pool.conf /etc/php7/php-fpm.d/zzz_www.conf
 
-# Configure supervisord
-COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 # Add application
 RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/www/html && \
     mkdir -p /var/lib/nginx && chown -R nginx:root /var/lib/nginx && chmod -R g+w /var/lib/nginx && \
@@ -154,9 +150,9 @@ RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/w
 COPY config/nginx-metrics.conf /etc/nginx/conf.d/nginx-metrics.conf
 COPY config/prometheus.conf /etc/nginx/conf.d/prometheus.conf
 
-COPY bin/nginx-stop.sh /usr/local/bin/
+COPY bin/* /usr/local/bin/
 
 WORKDIR /var/www/html
 
 EXPOSE 8080 8081
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/local/bin/entrypoint.sh"]
