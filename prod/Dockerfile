@@ -132,13 +132,6 @@ COPY --from=builder /usr/local/include/cassandra.h /usr/local/include/
 COPY --from=builder /usr/local/lib/libcassandra.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/lib/pkgconfig/
 
-
-# Configure nginx
-COPY config/nginx.conf /etc/nginx/nginx.conf
-
-# Configure PHP-FPM. Use zzz_ to ensure this conf is processed last.
-COPY config/fpm-pool.conf /etc/php7/php-fpm.d/zzz_www.conf
-
 # Add application
 RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/www/html && \
     mkdir -p /var/lib/nginx && chown -R nginx:root /var/lib/nginx && chmod -R g+w /var/lib/nginx && \
@@ -147,9 +140,10 @@ RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/w
     rm -f /etc/nginx/conf.d/*.conf && \
     chmod g+w /run
 
-COPY config/nginx-metrics.conf /etc/nginx/conf.d/nginx-metrics.conf
-COPY config/prometheus.conf /etc/nginx/conf.d/prometheus.conf
+# Copy conf
+COPY etc/ /etc
 
+# Copy executables
 COPY bin/* /usr/local/bin/
 
 WORKDIR /var/www/html
