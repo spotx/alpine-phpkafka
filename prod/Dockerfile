@@ -88,7 +88,6 @@ RUN mkdir /opt && \
     wget https://github.com/knyar/nginx-lua-prometheus/archive/0.1-20170610.zip -O - | unzip -d /opt - && \
     apk --no-cache add \
         bash \
-        curl \
         gmp \
         libstdc++ \
         libuv \
@@ -111,11 +110,8 @@ RUN mkdir /opt && \
         php7-xml \
         php7-xsl \
         nginx \
-        nginx-mod-http-lua \
-        redis && \
-    echo "extension=cassandra.so" > /etc/php7/conf.d/99_cassandra.ini
+        nginx-mod-http-lua
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
-# redis: Required for sync-conf replacement.
 
 # Copy kafka build artifacts
 COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
