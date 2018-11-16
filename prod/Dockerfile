@@ -121,7 +121,8 @@ RUN apk --no-cache add ca-certificates openssl && \
         apk add glibc-2.28-r0.apk glibc-bin-2.28-r0.apk glibc-i18n-2.28-r0.apk
 RUN ln -s /usr/glibc-compat/bin/locale /usr/local/bin/locale
 COPY ./etc/locale/locale.md /locale.md
-RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8
+RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8 && \
+        rm *.apk locale.md
 
 # Copy kafka build artifacts
 COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
