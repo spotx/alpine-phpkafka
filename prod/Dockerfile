@@ -119,10 +119,10 @@ RUN apk --no-cache add ca-certificates openssl && \
         wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-bin-2.28-r0.apk && \
         wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-i18n-2.28-r0.apk && \
         apk add glibc-2.28-r0.apk glibc-bin-2.28-r0.apk glibc-i18n-2.28-r0.apk
-RUN ln -s /usr/glibc-compat/bin/locale /usr/local/bin/locale
+RUN for n in /usr/glibc-compat/bin/*; do ln -s $n /usr/local/bin/${n##*/}; done
 COPY ./etc/locale/locale.md /locale.md
-RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8 && \
-        rm *.apk locale.md
+RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {} && \
+        /usr/glibc-compat/bin/localedef -i ja_JP -f UTF-8 jp_JP && rm *.apk locale.md
 
 # Copy kafka build artifacts
 COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
