@@ -113,6 +113,16 @@ RUN mkdir /opt && \
         nginx-mod-http-lua
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 
+RUN apk --no-cache add ca-certificates openssl && \
+        wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
+        wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-2.28-r0.apk && \
+        wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-bin-2.28-r0.apk && \
+        wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-i18n-2.28-r0.apk && \
+        apk add glibc-2.28-r0.apk glibc-bin-2.28-r0.apk glibc-i18n-2.28-r0.apk
+RUN ln -s /usr/glibc-compat/bin/locale /usr/local/bin/locale
+COPY ./etc/locale/locale.md /locale.md
+RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8
+
 # Copy kafka build artifacts
 COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
 COPY --from=kafkaBuilder /usr/lib/php7/modules/rdkafka.so /usr/lib/php7/modules/rdkafka.so
