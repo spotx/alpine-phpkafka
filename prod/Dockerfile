@@ -119,9 +119,11 @@ RUN apk --no-cache add ca-certificates openssl && \
         wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-bin-2.28-r0.apk && \
         wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-i18n-2.28-r0.apk && \
         apk add glibc-2.28-r0.apk glibc-bin-2.28-r0.apk glibc-i18n-2.28-r0.apk
+# create smylinks for all the bins in glibc to something already in the $PATH
 RUN for n in /usr/glibc-compat/bin/*; do ln -s $n /usr/local/bin/${n##*/}; done
 COPY ./etc/locale/locale.md /locale.md
 RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {} && \
+        # Our Japanese is mislabeled
         /usr/glibc-compat/bin/localedef -i ja_JP -f UTF-8 jp_JP && rm *.apk locale.md
 
 # Copy kafka build artifacts
