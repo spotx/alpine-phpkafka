@@ -144,5 +144,5 @@ COPY bin/* /usr/local/bin/
 
 WORKDIR /var/www/html
 
-EXPOSE 8080 8081
+EXPOSE 8080 8081 9000
 CMD ["/usr/local/bin/entrypoint.sh"]
