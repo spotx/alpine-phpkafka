@@ -1,4 +1,4 @@
-FROM spotx/alpine-phpkafka
+FROM spotx/alpine-phpkafka:7.1.28-fpm
 LABEL authors="joel@spotx.tv"
 
 ENV PHPIZE_DEPS \

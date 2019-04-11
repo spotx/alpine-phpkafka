@@ -1,4 +1,4 @@
-FROM php:7.1.17-alpine  as kafkaBuilder
+FROM php:7.1.28-alpine3.9  as kafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -22,7 +22,7 @@ RUN cd php-rdkafka && \
 
 
 #-------------------------------------------------------------------------------
-FROM php:7.1.17-alpine as cassandraBuilder
+FROM php:7.1.28-alpine3.9 as cassandraBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -35,7 +35,7 @@ RUN apk add --no-cache \
         openssl-dev gmp-dev
 
 # No cassandra-cpp-driver in Alpine. Building from source.
-ARG CASSANDRA_CPP_DRIVER_GIT_TAG="2.9.0"
+ARG CASSANDRA_CPP_DRIVER_GIT_TAG="2.11.0"
 RUN git clone --depth 1 --single-branch \
         --branch ${CASSANDRA_CPP_DRIVER_GIT_TAG} \
         https://github.com/datastax/cpp-driver.git && \
@@ -56,7 +56,9 @@ RUN git clone --depth 1 --single-branch \
 # No PHP cassandra driver module in Alpine. Building from source, then make
 # executable (not required, but makes it consistent with other .so files).
 RUN pecl install cassandra && \
-    chmod 755 /usr/local/lib/php/extensions/no-debug-non-zts-20160303/cassandra.so
+    	chmod 755 /usr/local/lib/php/extensions/no-debug-non-zts-20160303/cassandra.so && \
+		docker-php-ext-enable cassandra
+
 # Sample PECL install cassandra output:
 #    Build process completed successfully
 #    Installing '/usr/lib/php7/modules/cassandra.so'
@@ -64,7 +66,7 @@ RUN pecl install cassandra && \
 #    Extension cassandra enabled in php.ini
 
 #-------------------------------------------------------------------------------
-FROM php:7.1.17-alpine as redisBuilder
+FROM php:7.1.28-alpine3.9 as redisBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -85,8 +87,8 @@ RUN pecl install redis-4.3.0 && \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.1.17-fpm-alpine
-RUN mkdir /opt && \
+FROM php:7.1.28-fpm-alpine3.9
+RUN mkdir -p /opt && \
     wget https://github.com/knyar/nginx-lua-prometheus/archive/0.1-20170610.zip -O - | unzip -d /opt - && \
     apk --no-cache add \
         bash \
@@ -108,13 +110,14 @@ RUN mkdir /opt && \
 
 # Copy kafka build artifacts
 COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
-COPY --from=kafkaBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/rdkafka.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303/rdkafka.so
-COPY --from=kafkaBuilder /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini /etc/php7/conf.d/25_rdkafka.ini
+COPY --from=kafkaBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/rdkafka.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303/
+COPY --from=kafkaBuilder /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini
 COPY --from=kafkaBuilder /usr/local/lib/librdkafka* /usr/local/lib/
 COPY --from=kafkaBuilder /usr/local/lib/pkgconfig/rdkafka* /usr/local/lib/pkgconfig/
 
 # Copy PECL build artifacts
-COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/cassandra.so /usr/lib/php7/modules/cassandra.so
+COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303/
+COPY --from=cassandraBuilder /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini
 
 # Copy Cassandra build artifacts
 COPY --from=cassandraBuilder /usr/local/include/cassandra.h /usr/local/include/
@@ -122,8 +125,8 @@ COPY --from=cassandraBuilder /usr/local/lib/libcassandra.so* /usr/local/lib/
 COPY --from=cassandraBuilder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/lib/pkgconfig/
 
 # Copy redis build artifacts
-COPY --from=redisBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/redis.so /usr/lib/php7/modules/redis.so
-COPY --from=redisBuilder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini /etc/php7/conf.d/25_redis.ini
+COPY --from=redisBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/redis.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303/
+COPY --from=redisBuilder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini /usr/local/etc/php/conf.d/docker-php-ext-redis.ini
 
 # Add application
 RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/www/html && \
@@ -135,6 +138,7 @@ RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/w
 
 # Copy conf
 COPY etc/ /etc
+COPY usr/ /usr
 
 # Copy executables
 COPY bin/* /usr/local/bin/

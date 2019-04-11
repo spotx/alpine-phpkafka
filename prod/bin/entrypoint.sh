@@ -27,7 +27,7 @@ function quitsafe() {
 trap 'quitsafe' ERR TERM QUIT INT KILL
 
 # 1. Run php-fpm in the background
-php-fpm7 -F &
+php-fpm -F &
 PHP_PID=$!
 
 # 2. Run nginx in the background
