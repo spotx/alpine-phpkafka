@@ -26,8 +26,7 @@ RUN apk add --no-cache \
 
 
 # Copy conf
-COPY etc/ /etc
+COPY usr/ /usr
 
 ADD .spocker-login-greeting.shinc /var/
 ADD .bashrc_php7_dev /var/
-ADD add-container-etc-hosts-entry /usr/local/bin/
