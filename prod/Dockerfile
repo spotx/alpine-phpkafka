@@ -88,6 +88,60 @@ RUN pecl install redis-4.3.0 && \
 #-------------------------------------------------------------------------------
 
 FROM php:7.1.28-fpm-alpine3.9
+
+# php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
+
+# php-intl
+RUN set -xe \
+    && apk add --update \
+        icu \
+    && apk add --no-cache --virtual .php-deps \
+        make \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        zlib-dev \
+        icu-dev \
+        g++ \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install \
+        intl \
+    && docker-php-ext-enable intl \
+    && { find /usr/local/lib -type f -print0 | xargs -0r strip --strip-all -p 2>/dev/null || true; } \
+    && apk del .build-deps \
+    && rm -rf /tmp/* /usr/local/lib/php/doc/* /var/cache/apk/*
+
+# php-xml
+RUN set -xe \
+    && apk add --no-cache\
+        libxml2 libxml2-dev \
+    && apk add --no-cache --virtual .php-deps \
+        make \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        g++ \
+    && docker-php-ext-configure xml \
+    && docker-php-ext-install xml \
+    && docker-php-ext-enable xml \
+    && { find /usr/local/lib -type f -print0 | xargs -0r strip --strip-all -p 2>/dev/null || true; } \
+    && apk del .build-deps \
+    && rm -rf /tmp/* /usr/local/lib/php/doc/* /var/cache/apk/*
+
+# php-xsl
+RUN set -xe \
+    && apk add --no-cache\
+        libxml2 libxml2-dev libxslt-dev \
+    && apk add --no-cache --virtual .php-deps \
+        make \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        g++ \
+    && docker-php-ext-configure xsl \
+    && docker-php-ext-install xsl \
+    && docker-php-ext-enable xsl \
+    && { find /usr/local/lib -type f -print0 | xargs -0r strip --strip-all -p 2>/dev/null || true; } \
+    && apk del .build-deps \
+    && rm -rf /tmp/* /usr/local/lib/php/doc/* /var/cache/apk/*
+
 RUN mkdir -p /opt && \
     wget https://github.com/knyar/nginx-lua-prometheus/archive/0.1-20170610.zip -O - | unzip -d /opt - && \
     apk --no-cache add \
@@ -97,15 +151,12 @@ RUN mkdir -p /opt && \
         libuv \
         memcached \
         openssl \
-        php7-intl \
-        php7-mysqli \
-        php7-opcache \
-        php7-pdo \
-        php7-pdo_mysql \
-        php7-xml \
-        php7-xsl \
         nginx \
-        nginx-mod-http-lua
+        nginx-mod-http-lua && \
+	docker-php-ext-install mysqli && docker-php-ext-enable mysqli && \
+	docker-php-ext-install opcache && docker-php-ext-enable opcache && \
+	docker-php-ext-install pdo && docker-php-ext-enable pdo && \
+	docker-php-ext-install pdo_mysql && docker-php-ext-enable pdo_mysql
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 
 # Copy kafka build artifacts
