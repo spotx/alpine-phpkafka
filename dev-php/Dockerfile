@@ -9,7 +9,7 @@ RUN apk add --no-cache \
 	sudo \
 	yarn \
 	curl && \
-  curl -sSL https://phar.phpunit.de/phpunit.phar -o phpunit.phar && \
+  curl -sSL https://phar.phpunit.de/phpunit-7.phar -o phpunit.phar && \
     chmod +x phpunit.phar && \
     mv phpunit.phar /usr/local/bin/phpunit && \
     apk del curl
