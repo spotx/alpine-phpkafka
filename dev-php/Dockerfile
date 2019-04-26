@@ -1,4 +1,4 @@
-FROM spotx/alpine-phpkafka:7.1.28-fpm
+FROM spotx/alpine-phpkafka:7.1.28
 LABEL authors="joel@spotx.tv"
 
 RUN apk add --no-cache $PHPIZE_DEPS \
@@ -7,7 +7,12 @@ RUN apk add --no-cache $PHPIZE_DEPS \
 
 RUN apk add --no-cache \
 	sudo \
-	yarn
+	yarn \
+	curl && \
+  curl -sSL https://phar.phpunit.de/phpunit.phar -o phpunit.phar && \
+    chmod +x phpunit.phar && \
+    mv phpunit.phar /usr/local/bin/phpunit && \
+    apk del curl
 
 # Copy conf
 COPY usr/ /usr

@@ -7,7 +7,14 @@ RUN apk add --no-cache $PHPIZE_DEPS \
 
 RUN apk add --no-cache \
 	sudo \
-	yarn
+	yarn \
+	curl
+
+RUN curl -sSL https://phar.phpunit.de/phpunit.phar -o phpunit.phar && \
+    chmod +x phpunit.phar && \
+    mv phpunit.phar /usr/local/bin/phpunit
+
+RUN apk del curl
 
 # Copy conf
 COPY usr/ /usr
