@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# PURPOSE: Injects a record in the container's /etc/hosts file.
+# PARAMETERS:
+#   1st parameter: hostname
+#   2nd parameter: IP address to assign to hostname.
+
+sudo bash -c "echo $2 $1 >> /etc/hosts"

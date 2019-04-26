@@ -1,0 +1,2 @@
+alias php_debug_on="export PHP_IDE_CONFIG='serverName=local.spotxchange.com'; export XDEBUG_CONFIG='idekey=PHPSTORM';"
+alias php_debug_off="export PHP_IDE_CONFIG=''; export XDEBUG_CONFIG='';"

@@ -1,0 +1,12 @@
+
+GREEN_ESC="\033[32m"
+CLOSE_ESC="\033[0m"
+echo -e "${GREEN_ESC}"
+echo '  Welcome to...'
+echo '    / __/ _ \/ __ \/ ___/ //_/ __/ _ \'
+echo '   _\ \/ ___/ /_/ / /__/ ,< / _// , _/'
+echo '  /___/_/   \____/\___/_/|_/___/_/|_|'
+echo '  '`hostname`
+echo -e "${CLOSE_ESC}"
+
+
