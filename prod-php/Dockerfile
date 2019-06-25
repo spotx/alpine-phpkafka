@@ -1,4 +1,4 @@
-FROM php:7.1.28-alpine3.9  as kafkaBuilder
+FROM php:7.3.6-alpine3.9  as kafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -22,7 +22,7 @@ RUN cd php-rdkafka && \
 
 
 #-------------------------------------------------------------------------------
-FROM php:7.1.28-alpine3.9 as cassandraBuilder
+FROM php:7.3.6-alpine3.9 as cassandraBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -34,39 +34,34 @@ RUN apk add --no-cache \
         libuv-dev \
         openssl-dev gmp-dev
 
-# No cassandra-cpp-driver in Alpine. Building from source.
-ARG CASSANDRA_CPP_DRIVER_GIT_TAG="2.11.0"
+# No PHP cassandra driver module in Alpine. Building from source.
+# PHP cassandra driver from pecl is limited to only working on php 7.1.*, not 7.3.
+# master branch in github will allow builds on any version of 7.*.*
+ARG CASSANDRA_PHP_DRIVER_GIT_TAG="master"
 RUN git clone --depth 1 --single-branch \
-        --branch ${CASSANDRA_CPP_DRIVER_GIT_TAG} \
-        https://github.com/datastax/cpp-driver.git && \
-    mkdir cpp-driver/build && \
-    cd cpp-driver/build && \
-    cmake .. && \
+        --branch ${CASSANDRA_PHP_DRIVER_GIT_TAG} \
+        https://github.com/datastax/php-driver.git && \
+    cd php-driver && \
+    PHP_DRIVER_DIR=$(pwd) && \
+    git submodule update --init && \
+    mkdir /tmp/build && \
+    cd /tmp/build && \
+    cmake $PHP_DRIVER_DIR/lib/cpp-driver && \
     make && \
     make install && \
-    cd ../.. && \
-    rm -rf cpp-driver
-# SAMPLE OUTPUT FILES:
-#    -- Installing: /usr/local/include/cassandra.h
-#    -- Installing: /usr/local/lib/libcassandra.so.X.Y.Z
-#    -- Installing: /usr/local/lib/libcassandra.so.X
-#    -- Installing: /usr/local/lib/libcassandra.so
-#    -- Installing: /usr/local/lib/pkgconfig/cassandra.pc
-
-# No PHP cassandra driver module in Alpine. Building from source, then make
-# executable (not required, but makes it consistent with other .so files).
-RUN pecl install cassandra && \
-    	chmod 755 /usr/local/lib/php/extensions/no-debug-non-zts-20160303/cassandra.so && \
-		docker-php-ext-enable cassandra
-
-# Sample PECL install cassandra output:
-#    Build process completed successfully
-#    Installing '/usr/lib/php7/modules/cassandra.so'
-#    install ok: channel://pecl.php.net/cassandra-X.Y.Z
-#    Extension cassandra enabled in php.ini
+    cd $PHP_DRIVER_DIR/ext && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    cp modules/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/ && \
+    docker-php-ext-enable cassandra && \
+    cd / && \
+    rm -rf /tmp/build && \
+    rm -rf $PHP_DRIVER_DIR
 
 #-------------------------------------------------------------------------------
-FROM php:7.1.28-alpine3.9 as redisBuilder
+FROM php:7.3.6-alpine3.9 as redisBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -75,19 +70,19 @@ RUN apk add --no-cache \
 
 
 RUN pecl install redis-4.3.0 && \
-	chmod 0755 /usr/local/lib/php/extensions/no-debug-non-zts-20160303/redis.so && \
+	chmod 0755 /usr/local/lib/php/extensions/no-debug-non-zts-20180731/redis.so && \
         docker-php-ext-enable redis
 
 # Sample PECL install redis output:
 #  Build process completed successfully
-#  Installing '/usr/local/lib/php/extensions/no-debug-non-zts-20160303/redis.so'
+#  Installing '/usr/local/lib/php/extensions/no-debug-non-zts-20180731/redis.so'
 #  install ok: channel://pecl.php.net/redis-4.3.0
 #  configuration option "php_ini" is not set to php.ini location
 #  You should add "extension=redis.so" to php.ini
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.1.28-alpine3.9
+FROM php:7.3.6-alpine3.9
 
 # php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
 
@@ -161,13 +156,13 @@ RUN mkdir -p /opt && \
 
 # Copy kafka build artifacts
 COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
-COPY --from=kafkaBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/rdkafka.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303/
+COPY --from=kafkaBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/rdkafka.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
 COPY --from=kafkaBuilder /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini
 COPY --from=kafkaBuilder /usr/local/lib/librdkafka* /usr/local/lib/
 COPY --from=kafkaBuilder /usr/local/lib/pkgconfig/rdkafka* /usr/local/lib/pkgconfig/
 
 # Copy PECL build artifacts
-COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303/
+COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
 COPY --from=cassandraBuilder /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini
 
 # Copy Cassandra build artifacts
@@ -176,7 +171,7 @@ COPY --from=cassandraBuilder /usr/local/lib/libcassandra.so* /usr/local/lib/
 COPY --from=cassandraBuilder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/lib/pkgconfig/
 
 # Copy redis build artifacts
-COPY --from=redisBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20160303/redis.so /usr/local/lib/php/extensions/no-debug-non-zts-20160303/
+COPY --from=redisBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/redis.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
 COPY --from=redisBuilder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini /usr/local/etc/php/conf.d/docker-php-ext-redis.ini
 
 # Add application
