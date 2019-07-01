@@ -154,6 +154,9 @@ RUN mkdir -p /opt && \
 	docker-php-ext-install pdo_mysql && docker-php-ext-enable pdo_mysql
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 
+# clean up anything unneeded
+RUN rm /usr/local/bin/phpdbg && rm -rf /tmp/pear ~/.pearrc
+
 # Copy kafka build artifacts
 COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
 COPY --from=kafkaBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/rdkafka.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
