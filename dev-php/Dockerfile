@@ -14,6 +14,8 @@ RUN apk add --no-cache \
     curl -sSL https://phar.phpunit.de/phpunit-7.phar -o phpunit.phar && \
     chmod +x phpunit.phar && \
     mv phpunit.phar /usr/local/bin/phpunit && \
+    curl -L https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.1.1/phpcs.phar > /usr/local/bin/phpcs && \
+    chmod +x /usr/local/bin/phpcs && \
     apk del curl
 
 # Copy conf
