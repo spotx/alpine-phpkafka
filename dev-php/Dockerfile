@@ -10,6 +10,8 @@ RUN apk add --no-cache \
 	sudo \
 	yarn \
 	ffmpeg \
+	git \
+	openssh \
 	docker \
 	py-pip \
 	python-dev libffi-dev openssl-dev gcc libc-dev make \
@@ -21,6 +23,17 @@ RUN apk add --no-cache \
     chmod +x /usr/local/bin/phpcs && \
     pip install docker-compose && \
     apk del curl
+
+ADD common/ssh_keys/.ssh/ /root/.ssh/
+RUN chmod 600 /root/.ssh/*
+
+# Install our PHPCS Style.
+# Version doubles as cachebuster.
+ENV SPOTX_SCRIPTS_VERSION="993f339383f4d349e89ec845b6c0767e2a212ff0"
+RUN git clone ssh://gerrit.spotxchange.com:29418/scripts /opt/scripts && \
+    cd /opt/scripts && \
+    git checkout $SPOTX_SCRIPTS_VERSION && \
+    phpcs --config-set installed_paths /opt/scripts/code-standards/phpcs/
 
 # Copy conf
 COPY usr/ /usr
