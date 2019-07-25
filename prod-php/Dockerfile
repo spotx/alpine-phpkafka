@@ -1,4 +1,4 @@
-FROM php:7.3.6-alpine3.9  as kafkaBuilder
+FROM php:7.3.7-alpine3.9  as kafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -22,7 +22,7 @@ RUN cd php-rdkafka && \
 
 
 #-------------------------------------------------------------------------------
-FROM php:7.3.6-alpine3.9 as cassandraBuilder
+FROM php:7.3.7-alpine3.9 as cassandraBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -61,7 +61,7 @@ RUN git clone --depth 1 --single-branch \
     rm -rf $PHP_DRIVER_DIR
 
 #-------------------------------------------------------------------------------
-FROM php:7.3.6-alpine3.9 as redisBuilder
+FROM php:7.3.7-alpine3.9 as redisBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -82,7 +82,7 @@ RUN pecl install redis-4.3.0 && \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.3.6-alpine3.9
+FROM php:7.3.7-alpine3.9
 
 # php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
 
