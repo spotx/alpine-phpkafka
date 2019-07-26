@@ -10,6 +10,7 @@ RUN apk add --no-cache \
 	sudo \
 	yarn \
 	ffmpeg \
+	git \
 	docker \
 	py-pip \
 	python-dev libffi-dev openssl-dev gcc libc-dev make \
