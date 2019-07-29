@@ -3,13 +3,11 @@ LABEL authors="joel@spotx.tv"
 
 RUN apk add --no-cache $PHPIZE_DEPS \
         && pecl install xdebug-2.7.2 \
-        && docker-php-ext-enable xdebug \
-        && docker-php-ext-install pcntl
+        && docker-php-ext-enable xdebug
 
 RUN apk add --no-cache \
 	sudo \
 	yarn \
-	ffmpeg \
 	git \
 	docker \
 	py-pip \
