@@ -1,4 +1,4 @@
-FROM php:7.3.7-alpine3.9  as kafkaBuilder
+FROM php:7.3.10-alpine3.10  as kafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -6,14 +6,18 @@ RUN apk add --no-cache \
         $PHPIZE_DEPS \
         git alpine-sdk bash python
 
-RUN git clone https://github.com/edenhill/librdkafka.git
+RUN git clone -b 1.2.0 https://github.com/edenhill/librdkafka.git
 
 WORKDIR /root/librdkafka
 RUN /root/librdkafka/configure
 RUN make && make install
 
+# docker cache breaker
+ARG PHP_RDKAFKA_SHA=678301c1c9b6914e1e3d6ebf66c216f19d70f0a8
+
 RUN git clone https://github.com/arnaud-lb/php-rdkafka.git
 RUN cd php-rdkafka && \
+        git checkout 3.1.2 && \
         phpize && \
         ./configure --enable-kafka --with-php-config=/usr/local/bin/php-config && \
         make all -j "$(nproc)" && \
@@ -22,7 +26,7 @@ RUN cd php-rdkafka && \
 
 
 #-------------------------------------------------------------------------------
-FROM php:7.3.7-alpine3.9 as cassandraBuilder
+FROM php:7.3.10-alpine3.10 as cassandraBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -61,7 +65,7 @@ RUN git clone --depth 1 --single-branch \
     rm -rf $PHP_DRIVER_DIR
 
 #-------------------------------------------------------------------------------
-FROM php:7.3.7-alpine3.9 as redisBuilder
+FROM php:7.3.10-alpine3.10 as redisBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -82,7 +86,7 @@ RUN pecl install redis-4.3.0 && \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.3.7-alpine3.9
+FROM php:7.3.10-alpine3.10
 
 # php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
 
