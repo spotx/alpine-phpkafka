@@ -86,7 +86,7 @@ RUN pecl install redis-4.3.0 && \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.3.10-alpine3.10
+FROM php:7.3.10-fpm-alpine3.10
 
 # php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
 
