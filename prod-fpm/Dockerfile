@@ -6,7 +6,12 @@ RUN apk add --no-cache \
         $PHPIZE_DEPS \
         git alpine-sdk bash python
 
-RUN git clone -b 1.2.0 https://github.com/edenhill/librdkafka.git
+# docker cache breaker
+ARG LIB_RDKAFKA_SHA=e72fde03da75041cae47084148fc0f8a89a1abd4
+
+RUN git clone https://github.com/edenhill/librdkafka.git && \
+    cd librdkafka \
+    git checkout 1.2.1
 
 WORKDIR /root/librdkafka
 RUN /root/librdkafka/configure
