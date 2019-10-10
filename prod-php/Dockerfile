@@ -85,6 +85,19 @@ RUN pecl install redis-4.3.0 && \
 #  You should add "extension=redis.so" to php.ini
 
 #-------------------------------------------------------------------------------
+FROM php:7.3.10-alpine3.10 as evBuilder
+LABEL authors="joel@spotx.tv"
+WORKDIR /root
+
+RUN apk add --no-cache \
+        $PHPIZE_DEPS
+
+# no, not the debug version
+RUN yes no | pecl install ev && \
+	chmod 0755 /usr/local/lib/php/extensions/no-debug-non-zts-20180731/ev.so && \
+        docker-php-ext-enable ev
+
+#-------------------------------------------------------------------------------
 
 FROM php:7.3.10-alpine3.10
 
@@ -181,6 +194,10 @@ COPY --from=cassandraBuilder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/li
 # Copy redis build artifacts
 COPY --from=redisBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/redis.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
 COPY --from=redisBuilder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini /usr/local/etc/php/conf.d/docker-php-ext-redis.ini
+
+# Copy ev build artifacts
+COPY --from=evBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/ev.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
+COPY --from=evBuilder /usr/local/etc/php/conf.d/docker-php-ext-ev.ini /usr/local/etc/php/conf.d/docker-php-ext-ev.ini
 
 # Add application
 RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/www/html && \
