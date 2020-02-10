@@ -1,4 +1,4 @@
-FROM spotx/alpine-phpkafka:7.3.10
+FROM spotx/alpine-phpkafka:7.3.14
 LABEL authors="joel@spotx.tv"
 
 RUN apk add --no-cache $PHPIZE_DEPS \

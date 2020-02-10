@@ -1,37 +1,18 @@
-FROM php:7.3.10-alpine3.10  as kafkaBuilder
+# use PECL to install the rdkafka extension
+FROM php:7.3.14-alpine3.10 as rdkafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
 RUN apk add --no-cache \
-        $PHPIZE_DEPS \
-        git alpine-sdk bash python
+        librdkafka-dev \
+        $PHPIZE_DEPS
 
-# docker cache breaker
-ARG LIB_RDKAFKA_SHA=e72fde03da75041cae47084148fc0f8a89a1abd4
-
-RUN git clone https://github.com/edenhill/librdkafka.git && \
-    cd librdkafka \
-    git checkout 1.2.1
-
-WORKDIR /root/librdkafka
-RUN /root/librdkafka/configure
-RUN make && make install
-
-# docker cache breaker
-ARG PHP_RDKAFKA_SHA=678301c1c9b6914e1e3d6ebf66c216f19d70f0a8
-
-RUN git clone https://github.com/arnaud-lb/php-rdkafka.git
-RUN cd php-rdkafka && \
-        git checkout 3.1.2 && \
-        phpize && \
-        ./configure --enable-kafka --with-php-config=/usr/local/bin/php-config && \
-        make all -j "$(nproc)" && \
-        make install && \
+RUN pecl install rdkafka-4.0.3 && \
+	chmod 0755 /usr/local/lib/php/extensions/no-debug-non-zts-20180731/rdkafka.so && \
         docker-php-ext-enable rdkafka
 
-
 #-------------------------------------------------------------------------------
-FROM php:7.3.10-alpine3.10 as cassandraBuilder
+FROM php:7.3.14-alpine3.10 as cassandraBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -70,7 +51,7 @@ RUN git clone --depth 1 --single-branch \
     rm -rf $PHP_DRIVER_DIR
 
 #-------------------------------------------------------------------------------
-FROM php:7.3.10-alpine3.10 as redisBuilder
+FROM php:7.3.14-alpine3.10 as redisBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -90,7 +71,7 @@ RUN pecl install redis-4.3.0 && \
 #  You should add "extension=redis.so" to php.ini
 
 #-------------------------------------------------------------------------------
-FROM php:7.3.10-alpine3.10 as evBuilder
+FROM php:7.3.14-alpine3.10 as evBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -104,7 +85,7 @@ RUN yes no | pecl install ev && \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.3.10-alpine3.10
+FROM php:7.3.14-alpine3.10
 
 # php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
 
@@ -164,6 +145,7 @@ RUN mkdir -p /opt && \
     apk --no-cache add \
         bash \
         gmp \
+        librdkafka \
         libstdc++ \
         libuv \
         memcached \
@@ -181,11 +163,8 @@ RUN mkdir -p /opt && \
 RUN rm /usr/local/bin/phpdbg && rm -rf /tmp/pear ~/.pearrc
 
 # Copy kafka build artifacts
-COPY --from=kafkaBuilder /usr/local/include/*kafka* /usr/local/include/
-COPY --from=kafkaBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/rdkafka.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
-COPY --from=kafkaBuilder /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini
-COPY --from=kafkaBuilder /usr/local/lib/librdkafka* /usr/local/lib/
-COPY --from=kafkaBuilder /usr/local/lib/pkgconfig/rdkafka* /usr/local/lib/pkgconfig/
+COPY --from=rdkafkaBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/rdkafka.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
+COPY --from=rdkafkaBuilder /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini
 
 # Copy PECL build artifacts
 COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
