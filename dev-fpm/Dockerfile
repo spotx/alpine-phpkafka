@@ -1,8 +1,8 @@
-FROM spotx/alpine-phpkafka:7.3.14-fpm
+FROM spotx/alpine-phpkafka:7.4.3-fpm
 LABEL authors="joel@spotx.tv"
 
 RUN apk add --no-cache $PHPIZE_DEPS \
-        && pecl install xdebug-2.7.2 \
+        && pecl install xdebug-2.9.2 \
         && docker-php-ext-enable xdebug
 
 RUN apk add --no-cache \
