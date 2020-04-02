@@ -109,7 +109,8 @@ RUN mkdir -p /opt && \
 	docker-php-ext-install mysqli && docker-php-ext-enable mysqli && \
 	docker-php-ext-install opcache && docker-php-ext-enable opcache && \
 	docker-php-ext-install pdo && docker-php-ext-enable pdo && \
-	docker-php-ext-install pdo_mysql && docker-php-ext-enable pdo_mysql
+	docker-php-ext-install pdo_mysql && docker-php-ext-enable pdo_mysql && \
+	docker-php-ext-install pcntl
 # gmp, libstdc++, libuv, openssl: Required by PHP Cassandra driver
 
 # clean up anything unneeded
