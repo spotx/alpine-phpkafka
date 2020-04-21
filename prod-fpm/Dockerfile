@@ -126,7 +126,7 @@ COPY --from=redisBuilder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini /usr
 
 # Add application
 RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/www/html && \
-    mkdir -p /var/lib/nginx && chown -R nginx:root /var/lib/nginx && chmod -R g+w /var/lib/nginx && \
+    mkdir -p /var/lib/nginx && chown -R nginx:root /var/lib/nginx && chmod -R g+wr /var/lib/nginx && chmod g+wrx /var/lib/nginx/tmp && \
     mkdir -p /var/log/nginx && chown nginx:root /var/log/nginx && chmod g+wr /var/log/nginx && \
     mkdir -p /var/tmp/nginx && chown nginx:root /var/tmp/nginx && chmod g+wrx /var/tmp/nginx && \
     rm -f /etc/nginx/conf.d/*.conf && \
