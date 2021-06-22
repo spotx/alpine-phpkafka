@@ -19,6 +19,48 @@ RUN pecl install rdkafka-4.0.3 && \
 #You should add "extension=rdkafka.so" to php.ini
 
 #-------------------------------------------------------------------------------
+# building cassandra driver requires alpine 3.10. 3.11 fails for some reason :-(
+FROM php:7.3.14-alpine3.10 as cassandraBuilder
+LABEL authors="joel@spotx.tv"
+WORKDIR /root
+
+RUN apk add --no-cache \
+        $PHPIZE_DEPS \
+        git \
+        alpine-sdk \
+        cmake\
+        libuv-dev \
+        zlib-dev \
+        openssl-dev gmp-dev
+
+# No PHP cassandra driver module in Alpine. Building from source.
+# PHP cassandra driver from pecl is limited to only working on php 7.1.*, not 7.3.
+# master branch in github will allow builds on any version of 7.*.*
+ARG CASSANDRA_PHP_DRIVER_GIT_TAG="master"
+RUN git clone --depth 1 --single-branch \
+        --branch ${CASSANDRA_PHP_DRIVER_GIT_TAG} \
+        https://github.com/datastax/php-driver.git && \
+    cd php-driver && \
+    PHP_DRIVER_DIR=$(pwd) && \
+    git submodule update --init && \
+    mkdir /tmp/build && \
+    cd /tmp/build && \
+    cmake $PHP_DRIVER_DIR/lib/cpp-driver && \
+    make && \
+    make install && \
+    cd $PHP_DRIVER_DIR/ext && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    cp modules/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/ && \
+    docker-php-ext-enable cassandra && \
+    cd / && \
+    rm -rf /tmp/build && \
+    rm -rf $PHP_DRIVER_DIR
+
+#-------------------------------------------------------------------------------
+
 FROM php:7.4.3-alpine3.11 as redisBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
