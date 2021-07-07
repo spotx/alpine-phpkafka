@@ -178,6 +178,15 @@ COPY --from=rdkafkaBuilder /usr/local/etc/php/conf.d/docker-php-ext-rdkafka.ini 
 COPY --from=redisBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20190902/redis.so /usr/local/lib/php/extensions/no-debug-non-zts-20190902/
 COPY --from=redisBuilder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini /usr/local/etc/php/conf.d/docker-php-ext-redis.ini
 
+# Copy PECL build artifacts
+COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
+COPY --from=cassandraBuilder /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini
+
+# Copy Cassandra build artifacts
+COPY --from=cassandraBuilder /usr/local/include/cassandra.h /usr/local/include/
+COPY --from=cassandraBuilder /usr/local/lib/libcassandra.so* /usr/local/lib/
+COPY --from=cassandraBuilder /usr/local/lib/pkgconfig/cassandra.pc /usr/local/lib/pkgconfig/
+
 # Add application
 RUN mkdir -p /var/www/html && chown nginx:root /var/www/html && chmod g+w /var/www/html && \
     mkdir -p /var/lib/nginx && chown -R nginx:root /var/lib/nginx && chmod -R g+wr /var/lib/nginx && chmod g+wrx /var/lib/nginx/tmp && \
