@@ -81,7 +81,7 @@ RUN pecl install redis-4.3.0 && \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.4-alpine3.14
+FROM php:7.4-fpm-alpine3.14
 # php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
 
 # php-intl
