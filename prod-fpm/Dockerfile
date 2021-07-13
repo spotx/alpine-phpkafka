@@ -1,5 +1,5 @@
 # use PECL to install the rdkafka extension
-FROM php:7.4.3-alpine3.11 as rdkafkaBuilder
+FROM php:7.4-alpine3.14 as rdkafkaBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -19,8 +19,7 @@ RUN pecl install rdkafka-4.0.3 && \
 #You should add "extension=rdkafka.so" to php.ini
 
 #-------------------------------------------------------------------------------
-# building cassandra driver requires alpine 3.10. 3.11 fails for some reason :-(
-FROM php:7.3.14-alpine3.10 as cassandraBuilder
+FROM php:7.4-alpine3.14  as cassandraBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -53,7 +52,7 @@ RUN git clone --depth 1 --single-branch \
     ./configure && \
     make && \
     make install && \
-    cp modules/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/ && \
+    cp modules/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20190902/ && \
     docker-php-ext-enable cassandra && \
     cd / && \
     rm -rf /tmp/build && \
@@ -61,7 +60,7 @@ RUN git clone --depth 1 --single-branch \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.4.3-alpine3.11 as redisBuilder
+FROM php:7.4-alpine3.14 as redisBuilder
 LABEL authors="joel@spotx.tv"
 WORKDIR /root
 
@@ -82,7 +81,7 @@ RUN pecl install redis-4.3.0 && \
 
 #-------------------------------------------------------------------------------
 
-FROM php:7.4.3-fpm-alpine3.11
+FROM php:7.4-alpine3.14
 # php extension names: https://gist.github.com/chronon/95911d21928cff786e306c23e7d1d3f3
 
 # php-intl
@@ -179,7 +178,7 @@ COPY --from=redisBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20190902
 COPY --from=redisBuilder /usr/local/etc/php/conf.d/docker-php-ext-redis.ini /usr/local/etc/php/conf.d/docker-php-ext-redis.ini
 
 # Copy PECL build artifacts
-COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20180731/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/
+COPY --from=cassandraBuilder /usr/local/lib/php/extensions/no-debug-non-zts-20190902/cassandra.so /usr/local/lib/php/extensions/no-debug-non-zts-20190902/
 COPY --from=cassandraBuilder /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini /usr/local/etc/php/conf.d/docker-php-ext-cassandra.ini
 
 # Copy Cassandra build artifacts
